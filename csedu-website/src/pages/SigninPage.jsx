@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Link } from "react-router-dom"
 import { User, Lock, Eye, EyeOff, GraduationCap, Users } from "lucide-react"
 
-export default function LoginPage() {
+export default function SigninPage() {
   const [userType, setUserType] = useState("student")
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
@@ -133,7 +133,9 @@ export default function LoginPage() {
             <button
               type="submit"
               className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-colors"
-            >
+                
+              onClick={() => window.location.href = "/profile"}
+              >
               Sign in
             </button>
           </form>

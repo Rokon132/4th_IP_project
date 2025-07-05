@@ -114,7 +114,7 @@ export default function Header({ isScrolled }) {
             <button onClick={toggleSearch} className="p-2 rounded-full hover:bg-gray-100" aria-label="Search">
               <Search className="h-5 w-5 text-gray-600" />
             </button>
-            <Link to="/login" className="p-2 rounded-full hover:bg-gray-100">
+            <Link to="/signin" className="p-2 rounded-full hover:bg-gray-100">
               <User className="h-5 w-5 text-gray-600" />
             </Link>
             <button className="p-2 rounded-full hover:bg-gray-100 relative">

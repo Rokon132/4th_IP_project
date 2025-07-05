@@ -10,7 +10,7 @@ import ContactPage from "./pages/ContactPage"
 import NoticesPage from "./pages/NoticesPage"
 import BookingPage from "./pages/BookingPage"
 import FeesProjectsPage from "./pages/FeesProjectsPage"
-import LoginPage from "./pages/LoginPage"
+import SigninPage from "./pages/SigninPage"
 import NotFoundPage from "./pages/NotFoundPage"
 
 function App() {
@@ -20,7 +20,7 @@ function App() {
         <Route path="/" element={<Layout />}>
           <Route index element={<HomePage />} />
           <Route path="directory" element={<DirectoryPage />} />
-          <Route path="profile/:id" element={<ProfilePage />} />
+          <Route path="profile/" element={<ProfilePage />} />
           <Route path="academics" element={<AcademicsPage />} />
           <Route path="schedule" element={<SchedulePage />} />
           <Route path="admissions" element={<AdmissionsPage />} />
@@ -28,7 +28,7 @@ function App() {
           <Route path="notices" element={<NoticesPage />} />
           <Route path="booking" element={<BookingPage />} />
           <Route path="fees-projects" element={<FeesProjectsPage />} />
-          <Route path="login" element={<LoginPage />} />
+          <Route path="signin" element={<SigninPage />} />
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>
