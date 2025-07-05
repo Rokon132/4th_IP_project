@@ -172,7 +172,7 @@ CREATE TABLE admission_reviews (
 
 -- some sample data
 -- Make sure to hash passwords before inserting them in a real application
--- You can use bcrypt or any other hashing library to hash passwords
+
 
 
 -- USERS
