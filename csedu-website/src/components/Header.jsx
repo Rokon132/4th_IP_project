@@ -188,6 +188,8 @@ export default function Header({ isScrolled }) {
               >
                 Admissions
               </NavLink>
+
+
               <NavLink
                 to="/contact"
                 className={({ isActive }) =>
@@ -224,6 +226,9 @@ export default function Header({ isScrolled }) {
               >
                 Fees & Projects
               </NavLink>
+
+             
+
               <NavLink
                 to="/login"
                 className={({ isActive }) =>
@@ -233,6 +238,8 @@ export default function Header({ isScrolled }) {
               >
                 Login
               </NavLink>
+
+
             </nav>
           </div>
         )}

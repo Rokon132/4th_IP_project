@@ -20,6 +20,18 @@ export default function HomePage() {
       <HeroSection />
 
       {/* Stats Section */}
+
+      <section className="py-12 bg-white">
+        <div className="container mx-auto px-4 text-center">
+          <button
+            onClick={() => window.location.href = "/user-registration"}
+            className="bg-primary text-white px-6 py-3 rounded-lg font-semibold shadow hover:bg-primary/90 transition"
+          >
+            Register as a User
+          </button>
+        </div>
+        
+     </section>
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
@@ -52,6 +64,7 @@ export default function HomePage() {
               <p className="text-gray-600">Years of Excellence</p>
             </div>
           </div>
+          
         </div>
       </section>
 

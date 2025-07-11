@@ -12,6 +12,10 @@ import BookingPage from "./pages/BookingPage"
 import FeesProjectsPage from "./pages/FeesProjectsPage"
 import SigninPage from "./pages/SigninPage"
 import NotFoundPage from "./pages/NotFoundPage"
+import UserRegistration from "./pages/UserRegistration"
+import Student_Registration_Page from "./pages/Student_Registration_Page" // Importing the Student Registration Page
+import Faculty_Registration_Page from "./pages/Faculty_Registration_Page" // Importing the Faculty Registration Page
+
 
 function App() {
   return (
@@ -29,6 +33,11 @@ function App() {
           <Route path="booking" element={<BookingPage />} />
           <Route path="fees-projects" element={<FeesProjectsPage />} />
           <Route path="signin" element={<SigninPage />} />
+          <Route path="user-registration" element={<UserRegistration />} />
+          <Route path="student-registration" element={<Student_Registration_Page />} />
+          <Route path="faculty-registration" element={<Faculty_Registration_Page />} />
+          {/* Add other routes as needed */}
+          {/* Catch-all route for 404 Not Found */}
           <Route path="*" element={<NotFoundPage />} />
         </Route>
       </Routes>

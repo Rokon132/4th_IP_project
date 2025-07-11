@@ -11,8 +11,8 @@ CREATE TABLE users (
 
 -- STUDENTS TABLE
 CREATE TABLE students (
-    id INTEGER PRIMARY KEY REFERENCES users(id),
     name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
     student_id VARCHAR(30) UNIQUE NOT NULL,
     dob DATE NOT NULL,
     current_year INTEGER,
@@ -23,8 +23,9 @@ CREATE TABLE students (
 
 -- FACULTY TABLE
 CREATE TABLE faculty (
-    id INTEGER PRIMARY KEY REFERENCES users(id),
+    
     name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
     faculty_id VARCHAR(30) UNIQUE NOT NULL,
     title VARCHAR(100),
     department VARCHAR(100),
