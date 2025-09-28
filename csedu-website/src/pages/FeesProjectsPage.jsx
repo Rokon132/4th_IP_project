@@ -1,354 +1,318 @@
+
+
+// eta hoy 
 "use client"
 
-import { useState } from "react"
-import ProjectCard from "../components/ProjectCard"
-import { projects } from "../data/projects"
-import { Search, Filter, DollarSign, Calendar, CreditCard, Download } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import bkashLogo from "../icons/bkash.jpg"
+import bdbanklogo from "../icons/bdbank.png"
+import agraniLogo from "../icons/agrani.jpg"
+import dbbllogo from "../icons/dbbl.jpg"
+import nagadlogo from "../icons/nagad.png"
 
 export default function FeesProjectsPage() {
-  const [activeTab, setActiveTab] = useState("fees")
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedYear, setSelectedYear] = useState("all")
-  const [selectedTopic, setSelectedTopic] = useState("all")
+  const [feeStructures, setFeeStructures] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+  const user = JSON.parse(localStorage.getItem("user"));
+  console.log(user.email, user.role);
 
-  // Get unique years and topics for filters
-  const years = [...new Set(projects.map((p) => p.year))].sort((a, b) => b - a)
-  const topics = [...new Set(projects.flatMap((p) => p.tags))]
 
-  // Filter projects
-  const filteredProjects = projects.filter((project) => {
-    const matchesSearch =
-      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.students.some((student) => student.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      project.supervisor.toLowerCase().includes(searchTerm.toLowerCase())
+  const [studentId, setStudentId] = useState(1)
+  const [paidFees, setPaidFees] = useState(new Set())
+  const [paymentsLoading, setPaymentsLoading] = useState(true)
+  const [paymentsError, setPaymentsError] = useState(null)
 
-    const matchesYear = selectedYear === "all" || project.year.toString() === selectedYear
-    const matchesTopic = selectedTopic === "all" || project.tags.includes(selectedTopic)
+  const [selectedFee, setSelectedFee] = useState(null)
+  const [payLoading, setPayLoading] = useState(false)
+  const [payError, setPayError] = useState(null)
+  const [paySuccess, setPaySuccess] = useState(false)
 
-    return matchesSearch && matchesYear && matchesTopic
+  const [feeTypeFilter, setFeeTypeFilter] = useState("All")
+  const [yearFilter, setYearFilter] = useState("All")
+
+  const navigate = useNavigate()
+
+
+  // write code to fetch STUDENT ID using this api http://127.0.0.1:8000/get_student_id/student%40gmail.com
+  // and set STUDENT_ID to that id
+
+// useEffect(() => {
+//     fetch(`http://127.0.0.1:8000/get_student_id/${user.email}`)
+//       .then(async (res) => {
+//         if (!res.ok) throw new Error("Failed to fetch student ID.")
+//         const text = await res.text()
+//         try {
+//           const data = JSON.parse(text)
+//           STUDENT_ID = data.id
+//         } catch {
+//           setError("Failed to parse student ID.")
+//         }
+//       })
+//       .catch(() => {
+//         setError("Failed to fetch student ID.")
+//       })
+//   }, [])
+
+
+  useEffect(() => {
+  fetch(`http://127.0.0.1:8000/get_student_id/${user.email}`)
+    .then(async (res) => {
+      if (!res.ok) throw new Error("Failed to fetch student ID.")
+      const text = await res.text()
+      const id = parseInt(text)
+      if (!isNaN(id)) {
+        setStudentId(id)
+      } else {
+        setError("Failed to parse student ID.")
+      }
+    })
+    .catch(() => {
+      setError("Failed to fetch student ID.")
+    })
+}, [])
+
+  useEffect(() => {
+    fetch("http://localhost:8000/fee-structures")
+      .then(async (res) => {
+        const text = await res.text()
+        try {
+          const data = JSON.parse(text)
+          setFeeStructures(data)
+        } catch (err) {
+          setError("Failed to parse server response.")
+        }
+        setLoading(false)
+      })
+      .catch(() => {
+        setError("Failed to fetch fee structures.")
+        setLoading(false)
+      })
+  }, [])
+
+  useEffect(() => {
+    fetch(`http://localhost:8000/students/${studentId}/payments`)
+      .then(async (res) => {
+        if (!res.ok) throw new Error("Failed to fetch payment history.")
+        const text = await res.text()
+        try {
+          const payments = JSON.parse(text)
+          const ids = payments.map((p) => p.fee_structure_id)
+          setPaidFees(new Set(ids))
+        } catch {
+          setPaymentsError("Failed to parse payment history.")
+        }
+        setPaymentsLoading(false)
+      })
+      .catch(() => {
+        setPaymentsError("Failed to fetch payment history.")
+        setPaymentsLoading(false)
+      })
+  }, [])
+
+  const openPayModal = (fee) => {
+    setSelectedFee(fee)
+    setPayError(null)
+    setPaySuccess(false)
+  }
+
+  const closeModal = () => {
+    setSelectedFee(null)
+    setPayLoading(false)
+    setPayError(null)
+    setPaySuccess(false)
+  }
+
+  const handleProceedPayment = () => {
+    if (!selectedFee) return
+
+    setPayLoading(true)
+    setPayError(null)
+    setPaySuccess(false)
+
+    fetch("http://localhost:8000/payments", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fee_structure_id: selectedFee.id,
+        student_id: studentId,
+        amount_paid: selectedFee.amount,
+      }),
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const errorText = await res.text()
+          throw new Error(errorText || "Payment failed")
+        }
+        setPaidFees((prev) => {
+          const nxt = new Set(prev)
+          nxt.add(selectedFee.id)
+          return nxt
+        })
+        setPaySuccess(true)
+      })
+      .catch((err) => setPayError(err.message || "Payment failed"))
+      .finally(() => setPayLoading(false))
+  }
+
+  if (loading || paymentsLoading)
+    return <p className="p-4 text-center">Loading...</p>
+
+  if (error)
+    return <p className="p-4 text-center text-red-600">{error}</p>
+
+  if (paymentsError)
+    return (
+      <p className="p-4 text-center text-red-600">
+        {paymentsError}
+      </p>
+    )
+
+  // Filter fee structures
+  const filteredFees = feeStructures.filter((fee) => {
+    const matchesFeeType =
+      feeTypeFilter === "All" || fee.fee_type === feeTypeFilter
+    const matchesYear = yearFilter === "All" || fee.year === parseInt(yearFilter)
+    return matchesFeeType && matchesYear
   })
 
-  const feeStructure = [
-    {
-      category: "Undergraduate (Per Semester)",
-      items: [
-        { name: "Tuition Fee", amount: "BDT 15,000" },
-        { name: "Lab Fee", amount: "BDT 2,000" },
-        { name: "Library Fee", amount: "BDT 500" },
-        { name: "Development Fee", amount: "BDT 1,000" },
-        { name: "Total", amount: "BDT 18,500", highlight: true },
-      ],
-    },
-    {
-      category: "Graduate (Per Semester)",
-      items: [
-        { name: "Tuition Fee", amount: "BDT 25,000" },
-        { name: "Research Fee", amount: "BDT 3,000" },
-        { name: "Lab Fee", amount: "BDT 2,500" },
-        { name: "Library Fee", amount: "BDT 500" },
-        { name: "Total", amount: "BDT 31,000", highlight: true },
-      ],
-    },
-  ]
-
-  const paymentDeadlines = [
-    {
-      semester: "Fall 2023",
-      registration: "July 15, 2023",
-      payment: "July 30, 2023",
-      late_fee: "August 15, 2023",
-    },
-    {
-      semester: "Spring 2024",
-      registration: "December 15, 2023",
-      payment: "December 30, 2023",
-      late_fee: "January 15, 2024",
-    },
-  ]
-
-  const transactionHistory = [
-    {
-      id: "TXN001",
-      date: "July 25, 2023",
-      description: "Fall 2023 Semester Fee",
-      amount: "BDT 18,500",
-      status: "Completed",
-      method: "Online Banking",
-    },
-    {
-      id: "TXN002",
-      date: "January 20, 2023",
-      description: "Spring 2023 Semester Fee",
-      amount: "BDT 18,500",
-      status: "Completed",
-      method: "Bank Transfer",
-    },
-    {
-      id: "TXN003",
-      date: "August 10, 2022",
-      description: "Fall 2022 Semester Fee",
-      amount: "BDT 17,500",
-      status: "Completed",
-      method: "Cash Payment",
-    },
-  ]
-
   return (
-    <div className="min-h-screen py-8">
-      <div className="container mx-auto px-4">
-        <h1 className="page-title">Fees, Projects & Student Portal</h1>
+    <div className="container mx-auto p-4 max-w-3xl">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-center">Fee Structures</h1>
+        <button
+          onClick={() => navigate("/payment-history")}
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+        >
+          View Payment History
+        </button>
+      </div>
 
-        {/* Tab Navigation */}
-        <div className="bg-white rounded-lg shadow-md mb-8">
-          <div className="border-b">
-            <nav className="flex space-x-8 px-6">
-              <button
-                onClick={() => setActiveTab("fees")}
-                className={`py-4 px-2 border-b-2 font-medium text-sm ${
-                  activeTab === "fees"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Fee Structure
-              </button>
-              <button
-                onClick={() => setActiveTab("payments")}
-                className={`py-4 px-2 border-b-2 font-medium text-sm ${
-                  activeTab === "payments"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Payment History
-              </button>
-              <button
-                onClick={() => setActiveTab("projects")}
-                className={`py-4 px-2 border-b-2 font-medium text-sm ${
-                  activeTab === "projects"
-                    ? "border-primary text-primary"
-                    : "border-transparent text-gray-500 hover:text-gray-700"
-                }`}
-              >
-                Student Projects
-              </button>
-            </nav>
-          </div>
+      {/* Filters */}
+      <div className="flex gap-4 mb-6">
+        <div>
+          <label className="block mb-1 font-medium">Filter by Fee Type</label>
+          <select
+            className="border px-3 py-2 rounded"
+            value={feeTypeFilter}
+            onChange={(e) => setFeeTypeFilter(e.target.value)}
+          >
+            <option value="All">All</option>
+            <option value="Admission Fee">Admission Fee</option>
+            <option value="Development Fee">Development Fee</option>
+            <option value="Health Insurance">Health Insurance</option>
+          </select>
         </div>
 
-        {/* Fee Structure Tab */}
-        {activeTab === "fees" && (
-          <div className="space-y-8">
-            <div className="grid md:grid-cols-2 gap-8">
-              {feeStructure.map((structure, index) => (
-                <div key={index} className="bg-white rounded-lg shadow-md p-6">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                    <DollarSign className="h-6 w-6 mr-2 text-primary" />
-                    {structure.category}
-                  </h2>
-                  <div className="space-y-3">
-                    {structure.items.map((item, itemIndex) => (
-                      <div
-                        key={itemIndex}
-                        className={`flex justify-between items-center py-2 ${
-                          item.highlight ? "border-t-2 border-primary pt-3 font-semibold" : ""
-                        }`}
-                      >
-                        <span className={item.highlight ? "text-primary" : "text-gray-700"}>{item.name}</span>
-                        <span className={item.highlight ? "text-primary text-lg" : "text-gray-800"}>{item.amount}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div>
+          <label className="block mb-1 font-medium">Filter by Year</label>
+          <select
+            className="border px-3 py-2 rounded"
+            value={yearFilter}
+            onChange={(e) => setYearFilter(e.target.value)}
+          >
+            <option value="All">All</option>
+            {[2020, 2021, 2022, 2023, 2024, 2025].map((y) => (
+              <option key={y} value={y}>{y}</option>
+            ))}
+          </select>
+        </div>
+      </div>
 
-            {/* Payment Deadlines */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                <Calendar className="h-6 w-6 mr-2 text-primary" />
-                Payment Deadlines
-              </h2>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Semester</th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Registration Deadline
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Payment Deadline
-                      </th>
-                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                        Late Fee Deadline
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-200">
-                    {paymentDeadlines.map((deadline, index) => (
-                      <tr key={index} className="hover:bg-gray-50">
-                        <td className="px-4 py-3 font-medium text-gray-800">{deadline.semester}</td>
-                        <td className="px-4 py-3 text-gray-600">{deadline.registration}</td>
-                        <td className="px-4 py-3 text-gray-600">{deadline.payment}</td>
-                        <td className="px-4 py-3 text-gray-600">{deadline.late_fee}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+      {filteredFees.length === 0 ? (
+        <p className="text-center text-gray-600">No fee structures found.</p>
+      ) : (
+        <ul className="space-y-4">
+          {filteredFees.map((fee) => {
+            const isPaid = paidFees.has(fee.id)
+            return (
+              <li
+                key={fee.id}
+                className="border rounded-lg p-4 shadow-sm hover:shadow-md transition flex justify-between items-center"
+              >
+                <div>
+                  <p><strong>Year:</strong> {fee.year}</p>
+                  <p><strong>Fee Type:</strong> {fee.fee_type}</p>
+                  <p><strong>Amount:</strong> BDT {fee.amount}</p>
+                  <p>
+                    <strong>Deadline:</strong>{" "}
+                    {new Date(fee.deadline).toLocaleDateString()}
+                  </p>
+                </div>
+                <button
+                  onClick={() => openPayModal(fee)}
+                  disabled={isPaid}
+                  className={
+                    isPaid
+                      ? "bg-gray-400 text-white px-4 py-2 rounded cursor-not-allowed"
+                      : "bg-primary text-white px-4 py-2 rounded hover:bg-primary/90"
+                  }
+                >
+                  {isPaid ? "Paid" : "Pay"}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+
+      {selectedFee && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 shadow-lg relative">
+            <button
+              onClick={closeModal}
+              className="absolute top-3 right-3 text-gray-600 hover:text-gray-900 font-bold text-xl"
+              aria-label="Close modal"
+            >
+              &times;
+            </button>
+
+            <h2 className="text-2xl font-semibold mb-4">Confirm Payment</h2>
+
+            <p><strong>Year:</strong> {selectedFee.year}</p>
+            <p><strong>Fee Type:</strong> {selectedFee.fee_type}</p>
+            <p><strong>Amount:</strong> BDT {selectedFee.amount}</p>
+            <p>
+              <strong>Deadline:</strong>{" "}
+              {new Date(selectedFee.deadline).toLocaleDateString()}
+            </p>
+
+            <div className="mt-6">
+              <p className="font-medium mb-2">Pay Using:</p>
+              <div className="flex flex-wrap gap-4 justify-center items-center">
+                <img src={bdbanklogo} alt="Bangladesh Bank" className="h-10" />
+                <img src={bkashLogo} alt="bKash" className="h-10" />
+                <img src={nagadlogo} alt="Nagad" className="h-10" />
+                <img src={dbbllogo} alt="Dutch Bangla Bank" className="h-10" />
+                <img src={agraniLogo} alt="Agrani Bank" className="h-10" />
               </div>
             </div>
 
-            {/* Payment Methods */}
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Payment Methods</h2>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="border rounded-lg p-4 text-center">
-                  <CreditCard className="h-8 w-8 text-primary mx-auto mb-2" />
-                  <h3 className="font-medium text-gray-800">Online Banking</h3>
-                  <p className="text-sm text-gray-600">Pay through your bank's online portal</p>
-                </div>
-                <div className="border rounded-lg p-4 text-center">
-                  <DollarSign className="h-8 w-8 text-primary mx-auto mb-2" />
-                  <h3 className="font-medium text-gray-800">Bank Transfer</h3>
-                  <p className="text-sm text-gray-600">Direct transfer to university account</p>
-                </div>
-                <div className="border rounded-lg p-4 text-center">
-                  <Calendar className="h-8 w-8 text-primary mx-auto mb-2" />
-                  <h3 className="font-medium text-gray-800">Cash Payment</h3>
-                  <p className="text-sm text-gray-600">Pay at the university cashier</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+            {payError && <p className="text-red-600 mt-4">{payError}</p>}
+            {paySuccess && (
+              <p className="text-green-600 mt-4">Payment successful! 🎉</p>
+            )}
 
-        {/* Payment History Tab */}
-        {activeTab === "payments" && (
-          <div className="bg-white rounded-lg shadow-md p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-semibold text-gray-800">Transaction History</h2>
-              <button className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 flex items-center">
-                <Download className="h-4 w-4 mr-2" />
-                Download Statement
+            <div className="mt-6 flex justify-end space-x-3">
+              <button
+                onClick={closeModal}
+                className="px-4 py-2 border rounded hover:bg-gray-100"
+                disabled={payLoading}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleProceedPayment}
+                className="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90 disabled:opacity-50"
+                disabled={payLoading || paySuccess}
+              >
+                {payLoading ? "Processing..." : "Proceed"}
               </button>
             </div>
-
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Transaction ID</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Description</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Payment Method</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {transactionHistory.map((transaction) => (
-                    <tr key={transaction.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 font-medium text-gray-800">{transaction.id}</td>
-                      <td className="px-4 py-3 text-gray-600">{transaction.date}</td>
-                      <td className="px-4 py-3 text-gray-600">{transaction.description}</td>
-                      <td className="px-4 py-3 font-medium text-gray-800">{transaction.amount}</td>
-                      <td className="px-4 py-3 text-gray-600">{transaction.method}</td>
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          {transaction.status}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <h3 className="font-semibold text-blue-800 mb-2">Payment Information</h3>
-              <p className="text-blue-700 text-sm">
-                All payments are processed securely. For any payment-related queries, contact the finance office at
-                <strong> finance@cse.du.ac.bd</strong> or call <strong>+880-2-9661900 Ext. 7430</strong>.
-              </p>
-            </div>
           </div>
-        )}
-
-        {/* Student Projects Tab */}
-        {activeTab === "projects" && (
-          <div>
-            {/* Search and Filters */}
-            <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-              <div className="grid md:grid-cols-3 gap-4">
-                {/* Search */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search projects..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full p-3 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
-                  <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-                </div>
-
-                {/* Year Filter */}
-                <div>
-                  <select
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(e.target.value)}
-                    className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="all">All Years</option>
-                    {years.map((year) => (
-                      <option key={year} value={year}>
-                        {year}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                {/* Topic Filter */}
-                <div>
-                  <select
-                    value={selectedTopic}
-                    onChange={(e) => setSelectedTopic(e.target.value)}
-                    className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                  >
-                    <option value="all">All Topics</option>
-                    {topics.map((topic) => (
-                      <option key={topic} value={topic}>
-                        {topic}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* Results Count */}
-              <div className="mt-4">
-                <p className="text-gray-600">
-                  Showing {filteredProjects.length} of {projects.length} projects
-                </p>
-              </div>
-            </div>
-
-            {/* Projects Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProjects.length > 0 ? (
-                filteredProjects.map((project) => <ProjectCard key={project.id} project={project} />)
-              ) : (
-                <div className="col-span-full text-center py-12">
-                  <Filter className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-xl font-semibold text-gray-600 mb-2">No projects found</h3>
-                  <p className="text-gray-500">Try adjusting your search criteria</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

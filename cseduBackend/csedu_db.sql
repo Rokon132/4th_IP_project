@@ -9,11 +9,11 @@ CREATE TABLE users (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- STUDENTS TABLE
+-- STUDENTS TABLEema
 CREATE TABLE students (
+    student_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    student_id VARCHAR(30) UNIQUE NOT NULL,
     dob DATE NOT NULL,
     current_year INTEGER,
     program VARCHAR(100),
@@ -23,10 +23,9 @@ CREATE TABLE students (
 
 -- FACULTY TABLE
 CREATE TABLE faculty (
-    
+    faculty_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
-    faculty_id VARCHAR(30) UNIQUE NOT NULL,
     title VARCHAR(100),
     department VARCHAR(100),
     profile_image VARCHAR(255),
@@ -34,6 +33,8 @@ CREATE TABLE faculty (
     phone VARCHAR(30),
     office_location VARCHAR(100)
 );
+
+
 
 -- COURSES TABLE
 CREATE TABLE courses (
@@ -67,7 +68,7 @@ CREATE TABLE announcements (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     content TEXT NOT NULL,
-    created_by INTEGER REFERENCES users(id),
+    created_by VARCHAR(50) NOT NULL, -- 'admin' or 'faculty'
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -84,7 +85,10 @@ CREATE TABLE messages (
 -- ASSIGNMENTS TABLE
 CREATE TABLE assignments (
     id SERIAL PRIMARY KEY,
-    course_id INTEGER REFERENCES courses(id),
+    course_id VARCHAR(20) NOT NULL,
+    course_name VARCHAR(100) NOT NULL,
+    created_by VARCHAR(100) NOT NULL,
+    year VARCHAR(4) NOT NULL,
     title VARCHAR(255) NOT NULL,
     description TEXT,
     due_date DATE,
@@ -104,26 +108,37 @@ CREATE TABLE assignment_submissions (
 
 -- EXAM ROUTINE TABLE
 CREATE TABLE exam_routines (
-    id SERIAL PRIMARY KEY,
-    course_id INTEGER REFERENCES courses(id),
-    exam_type VARCHAR(50), -- e.g., 'Midterm', 'Final'
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    course_id VARCHAR(20) NOT NULL,
+    course_name VARCHAR(100) NOT NULL,
+    exam_type VARCHAR(50),
     exam_date DATE,
     start_time TIME,
     end_time TIME,
-    location VARCHAR(100)
+    location VARCHAR(100),
+    semester VARCHAR (20) NOT NULL,
+    batch VARCHAR(20) NOT NULL
 );
+
 
 -- CLASS SCHEDULE TABLE
-CREATE TABLE class_schedules (
-    id SERIAL PRIMARY KEY,
-    course_id INTEGER REFERENCES courses(id),
-    day_of_week VARCHAR(20), -- e.g., 'Sunday'
-    start_time TIME,
-    end_time TIME,
-    room VARCHAR(50)
-);
+CREATE TABLE class_schedules(
+         id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+          course_id VARCHAR(20) NOT NULL,
+          course_name VARCHAR(100) NOT NULL,
+          course_instructor VARCHAR(100) NOT NULL,
+          semester VARCHAR(20) NOT NULL,
+          batch VARCHAR(20) NOT NULL,
+          name_of_day VARCHAR(20) NOT NULL,
+          room VARCHAR(20) NOT NULL,
+          start_time TIME NOT NULL
+    );
 
--- LAB/CLASSROOM/EQUIPMENT BOOKING TABLE
+
+
+
+
+
 CREATE TABLE bookings (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
@@ -133,6 +148,8 @@ CREATE TABLE bookings (
     start_time TIME,
     end_time TIME,
     purpose TEXT,
+    participants INT,
+    contact_info VARCHAR(100),
     status VARCHAR(20) DEFAULT 'pending' -- 'pending', 'approved', 'rejected'
 );
 
@@ -237,3 +254,206 @@ INSERT INTO class_schedules (course_id, day_of_week, start_time, end_time, room)
 INSERT INTO bookings (user_id, resource_type, resource_name, booking_date, start_time, end_time, purpose, status) VALUES
 (1, 'lab', 'Lab 1', '2024-08-25', '10:00', '12:00', 'Project work', 'approved'),
 (3, 'equipment', 'Projector', '2024-08-26', '14:00', '16:00', 'Lecture', 'pending');
+
+
+
+
+
+
+
+----------------------sakib----------------------
+
+
+CREATE TABLE bookings (
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    resource_type VARCHAR(50), -- 'lab', 'classroom', 'equipment'
+    resource_name VARCHAR(100),
+    booking_date DATE,
+    start_time TIME,
+    end_time TIME,
+    purpose TEXT,
+    participants INT,
+    contact_info VARCHAR(100),
+    status VARCHAR(20) DEFAULT 'pending' -- 'pending', 'approved', 'rejected'
+);
+
+
+
+
+CREATE TABLE equipment (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    resource_type VARCHAR(50),
+    resource_name VARCHAR(100),
+    start_time TIME,
+    end_time TIME,
+    description TEXT,
+    image VARCHAR(255)
+);
+
+
+
+
+
+
+
+
+-------------images
+
+-- CREATE TABLE images (
+--     id INT AUTO_INCREMENT PRIMARY KEY,
+--     image VARCHAR(200) NOT NULL
+-- );
+
+
+
+CREATE TABLE pimages (
+    email VARCHAR(100) UNIQUE NOT NULL,
+    image VARCHAR(200) NOT NULL
+);
+
+
+
+CREATE TABLE eimages (
+    id INT PRIMARY KEY,
+    image VARCHAR(200) NOT NULL
+);
+------------projects
+CREATE TABLE projects (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_name VARCHAR(100) NOT NULL,
+    supervisor_name VARCHAR(100) NOT NULL,
+    project_title VARCHAR(200) NOT NULL,
+    project_abstract TEXT NOT NULL,
+    demo_link VARCHAR(300),
+    date DATE NOT NULL,
+    type_or_field VARCHAR(100) NOT NULL
+);
+
+
+
+----------farhan ---------------
+
+CREATE TABLE degree (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE course (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(20) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    instructor VARCHAR(100),
+    semester VARCHAR(20),
+    degree_id INT,
+    level ENUM('undergraduate', 'graduate') NOT NULL,
+    description TEXT,
+    FOREIGN KEY (degree_id) REFERENCES degree(id)
+);
+
+
+
+
+
+
+
+-- rhituraj 
+
+
+-- Admin‐created fee rules
+CREATE TABLE IF NOT EXISTS fee_structures (
+  id        INT AUTO_INCREMENT PRIMARY KEY,a
+  year      INT        NOT NULL,
+  fee_type  VARCHAR(50) NOT NULL,
+  deadline  DATE       NOT NULL,
+  amount    DECIMAL(10,2) NOT NULL
+);
+
+-- Student payments
+CREATE TABLE IF NOT EXISTS payments (
+  id                INT AUTO_INCREMENT PRIMARY KEY,
+  fee_structure_id  INT NOT NULL
+                       REFERENCES fee_structures(id)
+                       ON DELETE CASCADE,
+  student_id        INT NOT NULL
+                       REFERENCES students(id)
+                       ON DELETE CASCADE,
+  amount_paid       DECIMAL(10,2) NOT NULL,
+  payment_date      TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+
+CREATE TABLE admin (
+  admin_id INT NOT NULL AUTO_INCREMENT,
+  name VARCHAR(100) NOT NULL,
+  dob DATE DEFAULT NULL,
+  email VARCHAR(100) UNIQUE DEFAULT NULL,
+  phone VARCHAR(20) DEFAULT NULL,
+  username VARCHAR(50) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  address TEXT DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (admin_id)
+);
+
+
+
+
+
+CREATE TABLE degree (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE course (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(20) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    instructor VARCHAR(100),
+    semester VARCHAR(20),
+    degree_id INT,
+    level ENUM('undergraduate', 'graduate') NOT NULL,
+    description TEXT,
+    FOREIGN KEY (degree_id) REFERENCES degree(id)
+);
+
+
+
+
+
+------------------------
+
+
+CREATE TABLE faculty_ratings (
+  id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  student_id      BIGINT UNSIGNED NOT NULL,
+  faculty_email   VARCHAR(100)    NOT NULL,
+  rating          TINYINT         NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment         TEXT,
+  created_at      TIMESTAMP       DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (student_id)
+    REFERENCES students(student_id)
+    ON DELETE CASCADE,
+  FOREIGN KEY (faculty_email)
+    REFERENCES faculty(email)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+
+
+
+
+CREATE TABLE events(
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    event_date DATE NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    location VARCHAR(100),
+    created_by INTEGER REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+);

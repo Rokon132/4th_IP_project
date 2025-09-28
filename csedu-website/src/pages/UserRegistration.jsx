@@ -65,6 +65,10 @@ export default function UserRegistrationPage() {
       // Pass userData to faculty registration page (using state)
       navigate("/faculty-registration", { state: { userData } })
     }
+    else if (formData.role === "admin") {
+      // Pass userData to admin registration page (using state)
+      navigate("/admin-registration", { state: { userData } })
+    }
     else {
       setMessage("Registration submitted! (Connect to backend to save user.)")
       // You can handle faculty/admin registration here

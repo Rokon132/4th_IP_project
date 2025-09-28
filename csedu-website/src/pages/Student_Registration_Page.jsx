@@ -5,18 +5,16 @@ export default function StudentRegistration() {
   const location = useLocation()
   const navigate = useNavigate()
   const userData = location.state?.userData
-  console.log("User Data:", userData) // Log user data for debugging    
 
   const [formData, setFormData] = useState({
     name: "",
-    email: userData?.email || "", // Pre-fill email from userData
-    student_id: "",
+    email: userData?.email || "",
     dob: "",
     current_year: "",
     program: "",
-    profile_image: "",
     bio: "",
   })
+  const [profileImage, setProfileImage] = useState(null)
   const [message, setMessage] = useState("")
 
   const handleChange = (e) => {
@@ -27,36 +25,35 @@ export default function StudentRegistration() {
     }))
   }
 
+  const handleFileChange = (e) => {
+    setProfileImage(e.target.files[0])
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
-    // Combine userData and formData for backend submission
-    const registrationData = {
-   
-      ...formData,
+
+    const formPayload = new FormData()
+    for (const key in formData) {
+      formPayload.append(key, formData[key])
     }
+    if (profileImage) {
+      formPayload.append("profile_image", profileImage)
+    }
+
     fetch("http://127.0.0.1:8000/register-student", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(registrationData),
+      method: "POST",
+      body: formPayload,
     })
-        .then((response) => response.json())
-        .then((data) => {
-            console.log("Backend response:", data)
-            // Optionally handle backend response here
-        })
-        .catch((error) => {
-            console.error("Error:", error)
-            setMessage("Failed to register. Please try again.")
-        })
-
-
-
-    console.log("Student Registration Data:", registrationData)
-    setMessage("Student registration submitted! (Connect to backend to save student.)")
-    // Optionally, navigate to a success page
-    // navigate("/success")
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Backend response:", data)
+        setMessage("Student registered successfully!")
+        navigate("/student/" + formData.email)
+      })
+      .catch((error) => {
+        console.error("Error:", error)
+        setMessage("Failed to register. Please try again.")
+      })
   }
 
   return (
@@ -74,18 +71,6 @@ export default function StudentRegistration() {
               onChange={handleChange}
               className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
               placeholder="Enter full name"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Student ID</label>
-            <input
-              type="text"
-              name="student_id"
-              required
-              value={formData.student_id}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Enter student ID"
             />
           </div>
           <div>
@@ -124,14 +109,13 @@ export default function StudentRegistration() {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image URL</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
             <input
-              type="text"
+              type="file"
               name="profile_image"
-              value={formData.profile_image}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Paste image URL (optional)"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full"
             />
           </div>
           <div>

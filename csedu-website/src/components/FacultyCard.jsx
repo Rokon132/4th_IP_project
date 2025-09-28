@@ -1,58 +1,45 @@
-import { Mail, Phone, ExternalLink } from "lucide-react"
-import { Link } from "react-router-dom"
+import { Mail, Phone, MapPin } from "lucide-react";
 
 export default function FacultyCard({ faculty }) {
-  const { id, name, title, department, expertise, email, phone, image } = faculty
-
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-      <div className="flex flex-col sm:flex-row">
-        <div className="sm:w-1/3">
+    <div className="group transition-transform hover:-translate-y-1 duration-300 bg-white shadow-xl rounded-2xl border border-gray-100 p-6 max-w-sm mx-auto hover:shadow-indigo-200">
+      <div className="flex flex-col items-center">
+        <div className="relative w-32 h-32 mb-4">
           <img
-            src={image || "/placeholder.svg?height=300&width=300"}
-            alt={name}
-            className="w-full h-full object-cover"
+            src={
+              faculty.profile_image && faculty.profile_image !== ""
+                ? `http://localhost:8000/${faculty.profile_image}`
+                : `https://ui-avatars.com/api/?name=${encodeURIComponent(faculty.name)}&background=random`
+            }
+            alt={faculty.name}
+            className="w-full h-full rounded-full object-cover border-4 border-indigo-400 shadow-md"
           />
         </div>
-        <div className="p-5 sm:w-2/3">
-          <h3 className="font-bold text-xl mb-1 text-gray-800">{name}</h3>
-          <p className="text-primary font-medium mb-2">{title}</p>
-          <p className="text-gray-600 mb-3">{department}</p>
+        <h3 className="text-xl font-semibold text-gray-800 text-center">{faculty.name}</h3>
+        <p className="text-indigo-600 text-sm italic text-center">{faculty.title}</p>
+        <p className="text-gray-600 text-sm text-center">{faculty.department}</p>
+      </div>
 
-          <div className="mb-3">
-            <h4 className="text-sm font-semibold text-gray-700 mb-1">Expertise:</h4>
-            <div className="flex flex-wrap gap-1">
-              {expertise.map((item, index) => (
-                <span key={index} className="bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded">
-                  {item}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          <div className="space-y-1 mb-4">
-            <div className="flex items-center text-sm">
-              <Mail className="h-4 w-4 mr-2 text-gray-500" />
-              <a href={`mailto:${email}`} className="text-gray-600 hover:text-primary">
-                {email}
-              </a>
-            </div>
-            <div className="flex items-center text-sm">
-              <Phone className="h-4 w-4 mr-2 text-gray-500" />
-              <a href={`tel:${phone}`} className="text-gray-600 hover:text-primary">
-                {phone}
-              </a>
-            </div>
-          </div>
-
-          <Link
-            to={`/profile/${id}`}
-            className="inline-flex items-center text-primary hover:text-primary/80 font-medium text-sm"
-          >
-            View Profile <ExternalLink className="ml-1 h-4 w-4" />
-          </Link>
+      <div className="mt-4 space-y-1 text-sm text-gray-700">
+        <div className="flex items-start gap-2">
+          <Phone className="h-4 w-4 mt-0.5 text-indigo-500" />
+          <span><strong>Phone:</strong> {faculty.phone || "N/A"}</span>
+        </div>
+        <div className="flex items-start gap-2">
+          <MapPin className="h-4 w-4 mt-0.5 text-indigo-500" />
+          <span><strong>Office:</strong> {faculty.office_location || "N/A"}</span>
+        </div>
+        <div className="flex items-start gap-2">
+          <Mail className="h-4 w-4 mt-0.5 text-indigo-500" />
+          <span><strong>Email:</strong> {faculty.email || "N/A"}</span>
         </div>
       </div>
+
+      {faculty.bio && (
+        <p className="mt-4 text-gray-600 text-sm leading-relaxed border-t pt-3 border-gray-200">
+          {faculty.bio}
+        </p>
+      )}
     </div>
-  )
+  );
 }

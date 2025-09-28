@@ -1,7 +1,16 @@
-import { Link } from "react-router-dom"
-import { Facebook, Twitter, Linkedin, Instagram, Mail, Phone, MapPin } from "lucide-react"
+
+import { Link, useNavigate } from "react-router-dom"
+import { Facebook, Twitter, Linkedin, Instagram, Mail, Phone, MapPin, LogOut } from "lucide-react"
 
 export default function Footer() {
+  const navigate = useNavigate()
+
+  const handleLogout = () => {
+    // clear session, tokens etc.
+    localStorage.clear()
+    navigate("/login")
+  }
+
   return (
     <footer className="bg-gray-900 text-white pt-12 pb-6">
       <div className="container mx-auto px-4">
@@ -58,6 +67,14 @@ export default function Footer() {
                   Student Projects
                 </Link>
               </li>
+              <li>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center text-gray-300 hover:text-white"
+                >
+                  <LogOut size={18} className="mr-2" /> Logout
+                </button>
+              </li>
             </ul>
           </div>
 
@@ -65,35 +82,16 @@ export default function Footer() {
           <div>
             <h3 className="text-xl font-bold mb-4">Resources</h3>
             <ul className="space-y-2">
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white">
-                  Library
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white">
-                  Research
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white">
-                  Publications
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white">
-                  Career Services
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-300 hover:text-white">
-                  Alumni Network
-                </a>
-              </li>
+              <li><a href="#" className="text-gray-300 hover:text-white">Library</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">Research</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">Publications</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">Career Services</a></li>
+              <li><a href="#" className="text-gray-300 hover:text-white">Alumni Network</a></li>
             </ul>
           </div>
 
-          {/* Contact */}
+Rokonuzzaman..cse.du.fr, [7/16/25 10:49 PM]
+{/* Contact */}
           <div>
             <h3 className="text-xl font-bold mb-4">Contact Us</h3>
             <ul className="space-y-2">
@@ -119,21 +117,9 @@ export default function Footer() {
           </p>
           <div className="mt-4 md:mt-0">
             <ul className="flex space-x-4 text-sm">
-              <li>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  Privacy Policy
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  Terms of Service
-                </a>
-              </li>
-              <li>
-                <a href="#" className="text-gray-400 hover:text-white">
-                  Sitemap
-                </a>
-              </li>
+              <li><a href="#" className="text-gray-400 hover:text-white">Privacy Policy</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white">Terms of Service</a></li>
+              <li><a href="#" className="text-gray-400 hover:text-white">Sitemap</a></li>
             </ul>
           </div>
         </div>

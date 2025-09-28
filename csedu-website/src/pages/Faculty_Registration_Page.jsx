@@ -5,19 +5,18 @@ export default function FacultyRegistrationPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const userData = location.state?.userData
-  console.log("User Data:", userData) // Log user data for debugging
 
   const [formData, setFormData] = useState({
     name: "",
-     email: userData?.email || "", // Pre-fill email from userData
-    faculty_id: "",
+    email: userData?.email || "",
     title: "",
     department: "",
-    profile_image: "",
     bio: "",
     phone: "",
     office_location: "",
   })
+
+  const [profileImage, setProfileImage] = useState(null)
   const [message, setMessage] = useState("")
 
   const handleChange = (e) => {
@@ -28,39 +27,35 @@ export default function FacultyRegistrationPage() {
     }))
   }
 
+  const handleFileChange = (e) => {
+    setProfileImage(e.target.files[0])
+  }
+
   const handleSubmit = (e) => {
     e.preventDefault()
-    // Combine userData and formData for backend submission
-    
 
-    const registrationData = {
-    
-        ...formData,
-        }
-        fetch("http://127.0.0.1:8000/register-faculty", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(registrationData),
-        })
-            .then((response) => response.json())
-            .then((data) => {
-                console.log("Backend response:", data)
-                // Optionally handle backend response here
-            })
-            .catch((error) => {
-                console.error("Error:", error)
-                setMessage("Failed to register. Please try again.")
-            })
+    const formPayload = new FormData()
+    for (const key in formData) {
+      formPayload.append(key, formData[key])
+    }
+    if (profileImage) {
+      formPayload.append("profile_image", profileImage)
+    }
 
-
-
-
-    console.log("Faculty Registration Data:", registrationData)
-    setMessage("Faculty registration submitted! (Connect to backend to save faculty.)")
-    // Optionally, navigate to a success page
-    // navigate("/success")
+    fetch("http://127.0.0.1:8000/register-faculty", {
+      method: "POST",
+      body: formPayload,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Backend response:", data)
+        setMessage("Faculty registered successfully!")
+        navigate("/faculty/" + formData.email)
+      })
+      .catch((error) => {
+        console.error("Error:", error)
+        setMessage("Failed to register. Please try again.")
+      })
   }
 
   return (
@@ -80,18 +75,7 @@ export default function FacultyRegistrationPage() {
               placeholder="Enter full name"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Faculty ID</label>
-            <input
-              type="text"
-              name="faculty_id"
-              required
-              value={formData.faculty_id}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Enter faculty ID"
-            />
-          </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
             <input
@@ -103,6 +87,7 @@ export default function FacultyRegistrationPage() {
               placeholder="e.g. Associate Professor"
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Department</label>
             <input
@@ -114,17 +99,18 @@ export default function FacultyRegistrationPage() {
               placeholder="e.g. CSE"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image URL</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Profile Image</label>
             <input
-              type="text"
+              type="file"
               name="profile_image"
-              value={formData.profile_image}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Paste image URL (optional)"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="w-full"
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
             <textarea
@@ -136,6 +122,7 @@ export default function FacultyRegistrationPage() {
               rows={3}
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
             <input
@@ -147,6 +134,7 @@ export default function FacultyRegistrationPage() {
               placeholder="Enter phone number (optional)"
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Office Location</label>
             <input
@@ -158,6 +146,7 @@ export default function FacultyRegistrationPage() {
               placeholder="e.g. Room 101, Science Complex"
             />
           </div>
+
           <button
             type="submit"
             className="w-full bg-primary text-white py-2 px-4 rounded-md hover:bg-primary/90 transition-colors"
@@ -165,6 +154,7 @@ export default function FacultyRegistrationPage() {
             Complete Registration
           </button>
         </form>
+
         {message && <p className="mt-4 text-center text-green-600">{message}</p>}
       </div>
     </div>

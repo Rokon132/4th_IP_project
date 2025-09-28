@@ -1,104 +1,105 @@
-"use client"
-
-import { useState } from "react"
-import FacultyCard from "../components/FacultyCard"
-import { faculty } from "../data/faculty"
-import { Search, Filter } from "lucide-react"
+"use client";
+import { useEffect, useState } from "react";
+import FacultyCard from "../components/FacultyCard";
 
 export default function DirectoryPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [selectedRole, setSelectedRole] = useState("all")
-  const [selectedExpertise, setSelectedExpertise] = useState("all")
+  const [facultyList, setFacultyList] = useState([]);
+  const [filteredFaculty, setFilteredFaculty] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [filters, setFilters] = useState({
+    name: "",
+    title: "",
+    department: ""
+  });
 
-  // Get unique expertise areas
-  const expertiseAreas = [...new Set(faculty.flatMap((f) => f.expertise))]
+  useEffect(() => {
+    async function fetchFaculty() {
+      try {
+        const res = await fetch("http://localhost:8000/get-all-faculty");
+        if (!res.ok) throw new Error("Failed to fetch faculty data.");
+        const data = await res.json();
+        setFacultyList(data);
+        setFilteredFaculty(data);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchFaculty();
+  }, []);
 
-  // Filter faculty based on search and filters
-  const filteredFaculty = faculty.filter((member) => {
-    const matchesSearch =
-      member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      member.expertise.some((exp) => exp.toLowerCase().includes(searchTerm.toLowerCase()))
+  const handleFilterChange = (e) => {
+    setFilters({ ...filters, [e.target.name]: e.target.value });
+  };
 
-    const matchesRole = selectedRole === "all" || member.title.toLowerCase().includes(selectedRole.toLowerCase())
+  const applyFilters = () => {
+    const filtered = facultyList.filter((faculty) => {
+      const nameMatch = filters.name
+        ? faculty.name.toLowerCase().includes(filters.name.toLowerCase())
+        : true;
+      const titleMatch = filters.title
+        ? faculty.title.toLowerCase().includes(filters.title.toLowerCase())
+        : true;
+      const departmentMatch = filters.department
+        ? faculty.department.toLowerCase().includes(filters.department.toLowerCase())
+        : true;
+      return nameMatch && titleMatch && departmentMatch;
+    });
+    setFilteredFaculty(filtered);
+  };
 
-    const matchesExpertise = selectedExpertise === "all" || member.expertise.includes(selectedExpertise)
-
-    return matchesSearch && matchesRole && matchesExpertise
-  })
+  if (loading) return <div className="text-center mt-10 text-blue-600 text-lg animate-pulse">Loading faculty data...</div>;
+  if (error) return <div className="text-center mt-10 text-red-600 text-lg">{error}</div>;
 
   return (
-    <div className="min-h-screen py-8">
-      <div className="container mx-auto px-4">
-        <h1 className="page-title">Faculty Directory</h1>
+    <div className="min-h-screen p-8 bg-gradient-to-br from-[#f0f4ff] via-[#fafafe] to-[#f8f7fc]">
+      <h1 className="text-4xl font-extrabold mb-10 text-center text-transparent bg-clip-text bg-gradient-to-r from-sky-700 to-indigo-600 drop-shadow-md">
+        Explore Our Esteemed Faculty
+      </h1>
 
-        {/* Search and Filters */}
-        <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-          <div className="grid md:grid-cols-3 gap-4">
-            {/* Search */}
-            <div className="relative">
+      <div className="mb-12 bg-white p-8 rounded-2xl shadow-2xl ring-1 ring-slate-200">
+        <h2 className="text-2xl font-semibold mb-6 text-gray-800 border-b pb-2 border-gray-200">Search Faculty</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {[
+            { id: "name", label: "Name", placeholder: "Enter name" },
+            { id: "title", label: "Title", placeholder: "Enter title" },
+            { id: "department", label: "Department", placeholder: "Enter department" },
+          ].map(({ id, label, placeholder }) => (
+            <div key={id}>
+              <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor={`${id}-filter`}>
+                {label}
+              </label>
               <input
                 type="text"
-                placeholder="Search faculty..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full p-3 pl-10 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                id={`${id}-filter`}
+                name={id}
+                value={filters[id]}
+                onChange={handleFilterChange}
+                className="w-full p-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50"
+                placeholder={placeholder}
               />
-              <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
             </div>
-
-            {/* Role Filter */}
-            <div>
-              <select
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value)}
-                className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="all">All Roles</option>
-                <option value="professor">Professor</option>
-                <option value="associate">Associate Professor</option>
-                <option value="assistant">Assistant Professor</option>
-              </select>
-            </div>
-
-            {/* Expertise Filter */}
-            <div>
-              <select
-                value={selectedExpertise}
-                onChange={(e) => setSelectedExpertise(e.target.value)}
-                className="w-full p-3 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="all">All Expertise</option>
-                {expertiseAreas.map((expertise) => (
-                  <option key={expertise} value={expertise}>
-                    {expertise}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          ))}
         </div>
-
-        {/* Results Count */}
-        <div className="mb-6">
-          <p className="text-gray-600">
-            Showing {filteredFaculty.length} of {faculty.length} faculty members
-          </p>
-        </div>
-
-        {/* Faculty Grid */}
-        <div className="space-y-6">
-          {filteredFaculty.length > 0 ? (
-            filteredFaculty.map((member) => <FacultyCard key={member.id} faculty={member} />)
-          ) : (
-            <div className="text-center py-12">
-              <Filter className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-600 mb-2">No faculty members found</h3>
-              <p className="text-gray-500">Try adjusting your search criteria</p>
-            </div>
-          )}
-        </div>
+        <button
+          onClick={applyFilters}
+          className="mt-6 bg-gradient-to-r from-indigo-500 to-sky-500 hover:from-indigo-600 hover:to-sky-600 text-white px-6 py-3 rounded-xl font-semibold shadow-lg transition-transform transform hover:scale-105"
+        >
+          Apply Filters
+        </button>
       </div>
+
+      {filteredFaculty.length === 0 ? (
+        <p className="text-center text-gray-500 text-lg">No faculty found matching your filters.</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-10">
+          {filteredFaculty.map((faculty) => (
+            <FacultyCard key={faculty.email} faculty={faculty} />
+          ))}
+        </div>
+      )}
     </div>
-  )
+  );
 }

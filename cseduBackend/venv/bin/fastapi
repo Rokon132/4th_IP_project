@@ -1,5 +1,5 @@
 #!/bin/sh
-'''exec' "/home/rokon-csedu/Downloads/Telegram Desktop/csedu-website/cseduBackend/venv/bin/python3" "$0" "$@"
+'''exec' "/home/rokon-csedu/Downloads/Telegram Desktop/csedu-website_updated_after_lab/csedu-website/cseduBackend/venv/bin/python3" "$0" "$@"
 ' '''
 # -*- coding: utf-8 -*-
 import re

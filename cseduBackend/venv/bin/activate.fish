@@ -33,7 +33,7 @@ end
 # Unset irrelevant variables.
 deactivate nondestructive
 
-set -gx VIRTUAL_ENV '/home/rokon-csedu/Downloads/Telegram Desktop/csedu-website/cseduBackend/venv'
+set -gx VIRTUAL_ENV '/home/rokon-csedu/Downloads/Telegram Desktop/csedu-website_updated_after_lab/csedu-website/cseduBackend/venv'
 
 set -gx _OLD_VIRTUAL_PATH $PATH
 set -gx PATH "$VIRTUAL_ENV/"bin $PATH
